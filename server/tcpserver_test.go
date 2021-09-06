@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"crypto/tls"
 	"crypto/x509"
-	"log"
 	"net"
 	"os"
 	"testing"
@@ -21,17 +20,16 @@ func TestTCPEchoServer(t *testing.T) {
 	}
 
 	server := NewTCPServer(":1235")
-	go server.Run()
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			cert, err := os.ReadFile("/home/marcode/tls" + "/cert.pem")
 			if err != nil {
-				log.Fatal(err)
+				t.Fatal(err)
 			}
 			certPool := x509.NewCertPool()
 			if ok := certPool.AppendCertsFromPEM(cert); !ok {
-				log.Fatalf("unable to parse cert")
+				t.Fatalf("unable to parse cert")
 			}
 			config := &tls.Config{RootCAs: certPool}
 
@@ -61,4 +59,6 @@ func TestTCPEchoServer(t *testing.T) {
 			}
 		})
 	}
+
+	server.Stop()
 }

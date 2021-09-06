@@ -2,11 +2,10 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"marcode.io/echo-server/server"
 	"os"
-	"sync"
+	"os/signal"
 )
 
 func main() {
@@ -22,14 +21,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		srv.Run()
-	}()
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt)
+	signal.Notify(sigChan, os.Kill)
 
-	fmt.Printf("TCP Echo Server is running on port %s \n", *port)
+	sig := <-sigChan
+	log.Println("Received terminate, server is shutting down, signal: ", sig)
 
-	wg.Wait()
+	srv.Stop()
+
+	log.Println("Server Stopped")
 }
